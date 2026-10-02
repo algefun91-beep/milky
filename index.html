@@ -97,14 +97,22 @@ body.site .scroller{display:none}body.site #frames{display:block}
    see the pattern, then match it below. Pick ONE of the examples.
    ===================================================================== */
 const CHERRI_HOST = "https://byod.cherrion.top";
-const CHERRI_BASE = "/nv7ofl/"; // the part of Cherri's iframe src that stayed the same between loads
-const rnd8 = () => Array.from({ length: 8 }, () => "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 36)]).join("");
+// Cherri only accepts the middle part of its address (/xxxxxx/xxxxxxxx/xxxxxxxx/) that it issued to you.
+// Milky remembers the one you paste in. Type milky://cherri in the address bar to change it.
+let CHERRI_PREFIX = "/nv7ofl/84qvh5sm/28x4d6ky/";
+try { CHERRI_PREFIX = localStorage.getItem("milky-prefix") || CHERRI_PREFIX; } catch (e) {}
+function setPrefix() {
+  const v = prompt("Open " + CHERRI_HOST + ", load any site, press F12, find the <iframe in Elements, and paste its whole src link (or just the link) here:");
+  const m = v && v.match(/^https?:\/\/[^\/]+(\/[^\/]+\/[^\/]+\/[^\/]+\/)/);
+  if (!m) { if (v) alert("Couldn't read that link."); return; }
+  CHERRI_PREFIX = m[1];
+  try { localStorage.setItem("milky-prefix", CHERRI_PREFIX); } catch (e) {}
+}
 function cherriUrl(target) {
-  // Cherri encodes the site address as URL-safe base64 (no padding) after the prefix
+  // after the prefix comes the site address as URL-safe base64, no padding
   const bytes = new TextEncoder().encode(target);
   let bin = ""; bytes.forEach((c) => (bin += String.fromCharCode(c)));
-  const b64 = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  return CHERRI_HOST + CHERRI_BASE + rnd8() + "/" + rnd8() + "/" + b64; // the two random segments changed on every load
+  return CHERRI_HOST + CHERRI_PREFIX + btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 /* ===================================================================== */
 
@@ -226,6 +234,7 @@ function resolve(v) {
   return alias[r] || r;
 }
 function go(route, newTab) {
+  if (route === "cherri") { setPrefix(); route = "home"; }
   if (newTab) {
     const ex = route !== "home" && tabs.find((t) => t.route === route);
     if (ex) active = ex.id;
