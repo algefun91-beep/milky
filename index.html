@@ -97,10 +97,13 @@ body.site .scroller{display:none}body.site #frames{display:block}
    see the pattern, then match it below. Pick ONE of the examples.
    ===================================================================== */
 const CHERRI_HOST = "https://byod.cherrion.top";
+const CHERRI_PREFIX = "/nv7ofl/uyh8vjsg/jig9s53m/"; // copy from a Cherri iframe src; may change if Cherri is redeployed
 function cherriUrl(target) {
-  return CHERRI_HOST + "/?url=" + encodeURIComponent(target);      // example A: ?url=<encoded>
-  // return CHERRI_HOST + "/service/" + encodeURIComponent(target); // example B: /service/<encoded>
-  // return CHERRI_HOST + "/" + target;                             // example C: /<full url>
+  // Cherri encodes the site address as URL-safe base64 (no padding) after the prefix
+  const bytes = new TextEncoder().encode(target);
+  let bin = ""; bytes.forEach((c) => (bin += String.fromCharCode(c)));
+  const b64 = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return CHERRI_HOST + CHERRI_PREFIX + b64;
 }
 /* ===================================================================== */
 
